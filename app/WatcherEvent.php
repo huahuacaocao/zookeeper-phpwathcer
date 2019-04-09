@@ -1,11 +1,9 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: guochen
- * Date: 12/03/2019
- * Time: 2:10 PM
- */
+namespace App;
+
+use Predis\Client;
+
 class WatcherEvent
 {
 
@@ -13,11 +11,15 @@ class WatcherEvent
     protected $root = '';
     protected $zkHost = '';
     protected $connectionStatus = false;
+    protected $cacheConfig = [];
+    protected $client = null;
 
-    public function __construct($zkHost, string $root)
+
+    public function __construct($zkHost, string $root, array $redisConfig)
     {
         $this->root = $root;
         $this->zkHost = $zkHost;
+        $this->cacheConfig = $redisConfig;
     }
 
     public function run()
@@ -55,11 +57,11 @@ class WatcherEvent
             echo "watch node : $nodePath \r\n";
             $tempValue = $this->zookeeper->get($nodePath, [$this, 'watch'], $stat);
             echo "cache node : $nodePath \r\n";
-            ZookeeperTool::setCacheConf($nodePath, $tempValue);
+            $this->setCacheConf($nodePath, $tempValue);
         } else {
             echo "delete cache: $nodePath \r\n";
             // 删除缓存
-            ZookeeperTool::delCacheConf($nodePath);
+            $this->delCacheConf($nodePath);
         }
     }
 
@@ -95,6 +97,31 @@ class WatcherEvent
             default:
         }
     }
+
+    protected function client()
+    {
+        if (empty($this->client)) {
+            $this->client = new Client(
+                [
+                    'host' => $this->cacheConfig['REDIS_HOST'],
+                    'port' => $this->cacheConfig['REDIS_PORT'],
+                    'database' => $this->cacheConfig['REDIS_DATABASE'],
+                ]
+            );
+        }
+        return $this->client;
+    }
+
+    protected function setCacheConf(string $zkFullPath, ?string $value)
+    {
+        $this->client()->set(str_replace('/', ':', trim($zkFullPath, '/')), $value);
+    }
+
+    protected function delCacheConf(string $zkFullPath)
+    {
+        $this->client()->del(str_replace('/', ':', trim($zkFullPath, '/')));
+    }
+
 }
 
 
