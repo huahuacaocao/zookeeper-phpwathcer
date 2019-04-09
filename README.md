@@ -1,1 +1,5 @@
-# zookeeper-phpwathcer
+# zookeeper-phpwatcher
+zookeeper做配置管理
+将zookeeper节点数据同步到redis
+php常驻内存进程监听zookeeper节点变化，并将变化同步到redis
+
