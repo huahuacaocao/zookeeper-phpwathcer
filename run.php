@@ -2,6 +2,8 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use App\WatcherEvent;
+use App\ZkCacheClient;
+
 
 require_once "./config/config.php";
 
@@ -14,9 +16,15 @@ $redisConfig = [
     'REDIS_DATABASE' => $config['REDIS_DATABASE'],
 ];
 
-(new WatcherEvent($host, $root, $redisConfig))->run();
+// 测试watche
+//(new WatcherEvent($host, $root, $redisConfig))->run();
+//
+//
+//while (true) {
+//    sleep(1);
+//}
 
-
-while (true) {
-    sleep(1);
-}
+// 测试读取数据
+//$cacheClient = ZkCacheClient::getInstance($redisConfig);
+//$value = $cacheClient->getConf($root,'base/db_host');
+//var_dump($value);
